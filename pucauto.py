@@ -4,22 +4,29 @@ from __future__ import print_function
 
 import json
 import time
+import datetime
 import six
 import pprint
 from selenium import webdriver
 from datetime import datetime
 from bs4 import BeautifulSoup
 
-
 with open("config.json") as config:
     CONFIG = json.load(config)
 
+if CONFIG.get("send_email"):
+    import imp
+    email = imp.load_source('python_gmail', '../python_gmail/python_gmail.py')
 
 DRIVER = webdriver.Firefox()
 
-
 START_TIME = datetime.now()
 LAST_ADD_ON_CHECK = START_TIME
+
+if CONFIG.get("use_timestamp"):
+    TIME_STR = '%Y-%m-%d %H:%M%S '
+else:
+    TIME_STR = ''
 
 
 def print_pucauto():
