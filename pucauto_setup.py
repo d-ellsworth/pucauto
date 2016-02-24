@@ -7,7 +7,7 @@ def write_config(object,variable,value):
 	return object
 	
 def make_json(object):
-	with open('config.test.json','w') as outfile:
+	with open('config.json','w') as outfile:
 		json.dump(config[0], outfile, sort_keys = True, indent = 4)
 	return True
 
