@@ -401,14 +401,14 @@ if __name__ == "__main__":
     #   matching really is on, but I don't have a clever solution for it yet, so
     #   this is a band-aid safety measure.
     time.sleep(5)
-    print("Turning on auto matching...")
+    print("{}Turning on auto matching...".format(datetime.now().strftime(TIME_STR)))
     turn_on_auto_matching()
     time.sleep(5)
 
     wait_for_load()
     sort_by_member_points()
     wait_for_load()
-    print("Finding trades...")
+    print("{}Finding trades...".format(datetime.now().strftime(TIME_STR)))
     while check_runtime():
         find_trades()
     DRIVER.close()
