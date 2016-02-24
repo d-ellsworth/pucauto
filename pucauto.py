@@ -24,7 +24,7 @@ START_TIME = datetime.now()
 LAST_ADD_ON_CHECK = START_TIME
 
 if CONFIG.get("use_timestamp"):
-    TIME_STR = '%Y-%m-%d %H:%M%S '
+    TIME_STR = '%Y-%m-%d %H:%M:%S '
 else:
     TIME_STR = ''
 
@@ -351,8 +351,8 @@ def complete_trades(highest_value_bundle):
     member_name = highest_value_bundle[1]["name"]
     member_points = highest_value_bundle[1]["points"]
     bundle_value = highest_value_bundle[1]["value"]
-    print("Found {} card(s) worth {} points to trade to {} who has {} points...".format(
-        len(sorted_cards), bundle_value, member_name, member_points))
+    print("{}Found {} card(s) worth {} points to trade to {} who has {} points...".format(
+        datetime.now().strftime(TIME_STR),len(sorted_cards), bundle_value, member_name, member_points))
 
     success_count = 0
     success_value = 0
@@ -361,8 +361,8 @@ def complete_trades(highest_value_bundle):
             success_value += card["value"]
             success_count += 1
 
-    print("Successfully sent {} out of {} cards worth {} points!".format(
-        success_count, len(sorted_cards), success_value))
+    print("{}Successfully sent {} out of {} cards worth {} points!".format(
+        datetime.now().strftime(TIME_STR), success_count, len(sorted_cards), success_value))
 
 
 
@@ -390,7 +390,7 @@ if __name__ == "__main__":
     """Start Pucauto."""
 
     print_pucauto()
-    print("Logging in...")
+    print("{}Logging in...".format(datetime.now().strftime(TIME_STR)))
     log_in()
     goto_trades()
     wait_for_load()
