@@ -101,7 +101,7 @@ def check_runtime():
         time_passed = (datetime.now() - START_TIME).total_seconds() / 3600
         restart = time_passed < hours_to_run
         if not restart:
-            print("{} Time to restart".format(datetime.now().strftime(TIME_STR)))
+            print("{}Time to restart".format(datetime.now().strftime(TIME_STR)))
         return restart
     else:
         return True
@@ -128,7 +128,8 @@ def send_card(card, add_on=False):
     """
 
     if CONFIG.get("DEBUG"):
-        print("  DEBUG: skipping send on '{}'".format(card["name"]))
+        print("{}  DEBUG: skipping send on '{}'".format(
+            datetime.now().strftime(TIME_STR), card["name"]))
         return False
 
     # Go to the /trades/sendcard/******* page first to secure the trade
@@ -141,19 +142,28 @@ def send_card(card, add_on=False):
             reason = DRIVER.find_element_by_tag_name("h3").text
             # Indented for readability because this is part of a bundle and there
             # are header/footer messages
-            print("  Failed to send {}. Reason: {}".format(card["name"], reason))
+            print("{}  Failed to send {}. Reason: {}".format(
+                datetime.now().strftime(TIME_STR), card["name"], reason))
         return False
 
     # Then go to the /trades/confirm/******* page to confirm the trade
     DRIVER.get(card["href"].replace("sendcard", "confirm"))
 
     if add_on:
-        print("Added on {} to an unshipped trade for {} PucaPoints!".format(card["name"], card["value"]))
+        print("{}Added on {} to an unshipped trade for {} PucaPoints!".format(
+            datetime.now().strftime(TIME_STR), card["name"], card["value"]))
+        if CONFIG.get("send_email"):
+            email.email(CONFIG.get("send_email_to"),CONFIG.get("email_subject"),
+                        "Added on {} to an unshipped trade for {} PucaPoints!".format(
+                            card["name"],card["value"]))
     else:
         # Indented for readability because this is part of a bundle and there
         # are header/footer messages
-        print("  Sent {} for {} PucaPoints!".format(card["name"], card["value"]))
-
+        print("{}  Sent {} for {} PucaPoints!".format(
+            datetime.now().strftime(TIME_STR), card["name"], card["value"]))
+        if CONFIG.get("send_email"):
+            email.email(CONFIG.get("send_email_to"),CONFIG.get("email_subject"),
+                        "Sent {} for {} PucaPoints!".format(card["name"],card["value"]))
     return True
 
 
