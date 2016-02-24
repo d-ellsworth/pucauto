@@ -98,7 +98,11 @@ def check_runtime():
 
     hours_to_run = CONFIG.get("hours_to_run")
     if hours_to_run:
-        return (datetime.now() - START_TIME).total_seconds() / 60 / 60 < hours_to_run
+        time_passed = (datetime.now() - START_TIME).total_seconds() / 3600
+        restart = time_passed < hours_to_run
+        if not restart:
+            print("{} Time to restart".format(datetime.now().strftime(TIME_STR)))
+        return restart
     else:
         return True
 
