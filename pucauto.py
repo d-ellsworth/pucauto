@@ -8,6 +8,7 @@ import datetime
 import six
 import pprint
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 from datetime import datetime
 from bs4 import BeautifulSoup
 
@@ -35,12 +36,12 @@ def print_pucauto():
     print("""
      _______  __   __  _______  _______  __   __  _______  _______
     |       ||  | |  ||       ||   _   ||  | |  ||       ||       |
-    |    _  ||  | |  ||       ||  |_|  ||  | |  ||_     _||   _   |
-    |   |_| ||  |_|  ||       ||       ||  |_|  |  |   |  |  | |  |
-    |    ___||       ||      _||       ||       |  |   |  |  |_|  |
-    |   |    |       ||     |_ |   _   ||       |  |   |  |       |
+    |    _  ||  | |  ||    ___||  | |  ||  | |  ||_     _||   _   |
+    |   |_| ||  |_|  ||   |    |  |_|  ||  |_|  |  |   |  |  | |  |
+    |    ___||       ||   |___ |   _   ||       |  |   |  |  |_|  |
+    |   |    |       ||       ||  | |  ||       |  |   |  |       |
     |___|    |_______||_______||__| |__||_______|  |___|  |_______|
-    pucauto.com                                              v0.4.3
+    pucauto.com                                              v0.4.6
     github.com/tomreece/pucauto
     @pucautobot on Twitter
 
@@ -127,8 +128,8 @@ def send_card(card, add_on=False):
     Returns True if the card was sent, False otherwise.
     """
 
-    if CONFIG.get("DEBUG"):
-        print("{}  DEBUG: skipping send on '{}'".format(
+    if CONFIG.get("debug"):
+        print(u"{}  DEBUG: Skipping send of '{}'".format(
             datetime.now().strftime(TIME_STR), card["name"]))
         return False
 
@@ -142,27 +143,37 @@ def send_card(card, add_on=False):
             reason = DRIVER.find_element_by_tag_name("h3").text
             # Indented for readability because this is part of a bundle and there
             # are header/footer messages
-            print("{}  Failed to send {}. Reason: {}".format(
+            print(u"{}  Failed to send {}. Reason: {}".format(
                 datetime.now().strftime(TIME_STR), card["name"], reason))
         return False
 
+    # See if the PucaShield insurance checkbox is checked or not
+    # This is determined by the user's PucaShield threshold value in their settings
+    is_insurance_selected = DRIVER.find_element_by_id("insurance").is_selected()
+
+    confirm_url = card["href"].replace("sendcard", "confirm")
+
+    if is_insurance_selected:
+        confirm_url += "?ins=1"
+
+
     # Then go to the /trades/confirm/******* page to confirm the trade
-    DRIVER.get(card["href"].replace("sendcard", "confirm"))
+    DRIVER.get(confirm_url)
 
     if add_on:
-        print("{}Added on {} to an unshipped trade for {} PucaPoints!".format(
-            datetime.now().strftime(TIME_STR), card["name"], card["value"]))
-        if CONFIG.get("send_email"):
-            email.email(CONFIG.get("send_email_to"),CONFIG.get("email_subject"),
+	print(u"{}Added on {} to an unshipped trade for {} PucaPoints!".format(
+            datetime.now().strftime(TIME_STR),card["name"], card["value"]))
+	if CONFIG.get("send_email"):
+	    email.email(CONFIG.get("send_email_to"),CONFIG.get("email_subject"),
                         "Added on {} to an unshipped trade for {} PucaPoints!".format(
                             card["name"],card["value"]))
     else:
         # Indented for readability because this is part of a bundle and there
         # are header/footer messages
-        print("{}  Sent {} for {} PucaPoints!".format(
+	print(u"{}  Sent {} for {} PucaPoints!".format(
             datetime.now().strftime(TIME_STR), card["name"], card["value"]))
-        if CONFIG.get("send_email"):
-            email.email(CONFIG.get("send_email_to"),CONFIG.get("email_subject"),
+	if CONFIG.get("send_email"):
+	    email.email(CONFIG.get("send_email_to"),CONFIG.get("email_subject"),
                         "Sent {} for {} PucaPoints!".format(card["name"],card["value"]))
     return True
 
@@ -174,7 +185,12 @@ def find_and_send_add_ons():
     """
 
     DRIVER.get("https://pucatrade.com/trades/active")
-    DRIVER.find_element_by_css_selector("div.dataTables_filter input").send_keys('Unshipped')
+
+    try:
+        DRIVER.find_element_by_css_selector("div.dataTables_filter input").send_keys('Unshipped')
+    except NoSuchElementException:
+        return
+        
     # Wait a bit for the DOM to update after filtering
     time.sleep(5)
 
@@ -211,8 +227,7 @@ def find_and_send_add_ons():
 
     for card in sorted_cards:
         send_card(card, True)
-
-
+        
 def load_trade_list(partial=False):
     """Scroll to the bottom of the page until we can't scroll any further.
     PucaTrade's /trades page implements an infinite scroll table. Without this
@@ -351,7 +366,7 @@ def complete_trades(highest_value_bundle):
     member_name = highest_value_bundle[1]["name"]
     member_points = highest_value_bundle[1]["points"]
     bundle_value = highest_value_bundle[1]["value"]
-    print("{}Found {} card(s) worth {} points to trade to {} who has {} points...".format(
+    print(u"{}Found {} card(s) worth {} points to trade to {} who has {} points...".format(
         datetime.now().strftime(TIME_STR),len(sorted_cards), bundle_value, member_name, member_points))
 
     success_count = 0
